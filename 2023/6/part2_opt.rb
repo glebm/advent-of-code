@@ -16,11 +16,10 @@ t, d = ARGF.each_line.map { _1.gsub(/[^\d]+/, '').to_i }
 #
 # When the roots are integers (e.g. t = 8, d = 12),
 # we cannot count them as part of the solution (strict inequality).
-# We work around that by subtracting/adding a small number.
 #
 # The number of positive integer points < t,
-# excluding integral root, is:
-# floor(r2 - eps) - ceil(r1 + eps) + 1
+# excluding integral roots, is:
+# ceil(r2) - floor(r1) - 1
 
 # Check if the roots exist, i.e. b² > 4ac
 unless t ** 2 > 4 * d
@@ -31,5 +30,4 @@ end
 # Roots of ax² + bx + c are (-b ± sqrt(b² - 4ac)) / 2a
 r1 = (t - Math.sqrt(t ** 2 - 4 * d)) / 2
 r2 = (t + Math.sqrt(t ** 2 - 4 * d)) / 2
-eps = 0.00000001
-puts (r2 - eps).floor - (r1 + eps).ceil + 1
+puts r2.ceil - r1.floor - 1
