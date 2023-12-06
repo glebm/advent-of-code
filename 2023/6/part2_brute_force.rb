@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# Runs in ~3 seconds.
+
 total_time, max_distance = ARGF.each_line.map { _1.gsub(/[^\d]+/, '').to_i }
 
 puts (0...total_time).count { |time_to_hold|
