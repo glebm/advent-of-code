@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 
-hands = $<.each_line.map { h, s = _1.split(' '); [h.chars.map(&:to_sym), s.to_i] }
+hands = $<.map { h, s = _1.split(' '); [h.chars.map(&:to_sym), s.to_i] }
 
 COMBOS = %i[five four full_house three two_pair one_pair high_card none]
 CARDS = %i[A K Q J T 9 8 7 6 5 4 3 2]
 
 def combo(hand)
-  case hand.group_by { _1 }.transform_values!(&:count).values.sort
+  case hand.tally.values.sort
   in [5] then :five
   in [1, 4] then :four
   in [2, 3] then :full_house
