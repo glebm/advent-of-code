@@ -1,0 +1,13 @@
+#!/bin/sh
+
+day="$(date '+%e' | xargs)"
+mkdir -p "$day"
+cd "$day"
+for f in part1.rb part2.rb; do
+  if ! [ -f $f ]; then
+    echo '#!/usr/bin/env ruby' > "$f"
+    chmod +x "$f"
+  fi
+done
+
+aoc d -I
