@@ -1,6 +1,6 @@
 #!/bin/sh
 
-day="$(date '+%e' | xargs)"
+day="$(date '+%d')"
 mkdir -p "$day"
 cd "$day"
 for f in part1.rb part2.rb; do
