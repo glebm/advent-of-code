@@ -52,10 +52,9 @@ end
 
 def inside?(point, inside)
   # Crossing number algorithm https://web.archive.org/web/20130126163405/http://geomalgorithms.com/a03-_inclusion.html
-  (point.x + 1...inside.w).lazy.filter_map { |x|
-    c = inside[point.with(x: x)]
-    c == '|' || c == 'J' || c == 'L'
-  }.count % 2 != 0
+  (point.x + 1...inside.w).count {
+    %w[| J L].include?(inside[point.with(x: _1)])
+  }.odd?
 end
 
 inside.each_position { |p|
@@ -67,4 +66,4 @@ inside.each_position { |p|
 #   '7' => '╮', 'F' => '╭', 'I' => '█', 'O' => '░', 'S' => '🯅' }[c] || c
 # puts inside.array.map { |xs| xs.map { debug_ch(_1) }.join }.join("\n")
 
-puts inside.each_position.lazy.filter_map { inside[_1] == 'I' }.count
+puts inside.each_position.count { inside[_1] == 'I' }
