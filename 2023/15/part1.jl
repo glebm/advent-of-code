@@ -1,11 +1,7 @@
 #!/usr/bin/env julia
 
-function focal_hash(str::AbstractString)
-  foldl(str; init=0) do r, c
-    r += Int(c)
-    r *= 17
-    r % 256
-  end
+focal_hash(str::AbstractString)::Int = foldl(str; init=0) do r, c
+  (r + Int(c)) * 17 % 256
 end
 
-split(readline(), ",") .|> focal_hash |> sum |> println
+eachsplit(readline(), ",") .|> focal_hash |> sum |> println

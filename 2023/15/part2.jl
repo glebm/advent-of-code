@@ -1,11 +1,10 @@
 #!/usr/bin/env julia
 
-function focal_hash(str::AbstractString)
-  foldl(str; init=0) do r, c
-    r += Int(c)
-    r *= 17
-    r % 256
-  end
+using LinearAlgebra
+using StaticArrays # import Pkg; Pkg.add("StaticArrays")
+
+focal_hash(str::AbstractString)::Int = foldl(str; init=0) do r, c
+  (r + Int(c)) * 17 % 256
 end
 
 struct Lens
@@ -13,9 +12,7 @@ struct Lens
   focal::Int
 end
 
-const Box = Vector{Lens}
-
-function step(boxes::Vector{Box}, step::AbstractString)
+function step(boxes::SVector{256, Vector{Lens}}, step::AbstractString)
   label, val = match(r"^(\w+)[-=](-?\d+)?", step)
   index = focal_hash(label)
   box = boxes[index + 1]
@@ -32,15 +29,15 @@ function step(boxes::Vector{Box}, step::AbstractString)
       box[lens_pos] = Lens(label, val)
     end
   end
-  boxes
+  nothing
 end
 
-function score((boxnum, box)::Tuple{Int, Box})
-  box |> enumerate .|> ((slot, lens)::Tuple{Int, Lens} ->
-    boxnum * slot * lens.focal) |> sum
+score(box::Vector{Lens})::Int =
+  isempty(box) ? 0 : eachindex(box) ⋅ (lens.focal for lens in box)
+
+steps = eachsplit(readline(), ",")
+boxes = @SVector [Vector{Lens}() for _=1:256]
+foreach(steps) do s
+  step(boxes, s)
 end
-
-steps = split(readline(), ",")
-boxes = [Box() for _=1:256]
-
-foldl(step, steps, init=boxes) |> enumerate .|> score |> sum |> println
+@time sum(eachindex(boxes) ⋅ Iterators.map(score, boxes)) |> println
