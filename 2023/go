@@ -1,13 +1,35 @@
 #!/bin/sh
 
+init_ruby() {
+  for f in part1.rb part2.rb; do
+    if ! [ -f $f ]; then
+      echo '#!/usr/bin/env ruby' > "$f"
+      chmod +x "$f"
+    fi
+  done
+}
+
+init_julia() {
+  for f in part1.jl part2.jl; do
+    if ! [ -f $f ]; then
+      echo '#!/usr/bin/env julia' > "$f"
+      chmod +x "$f"
+    fi
+  done
+}
+
 day="$(date '+%d')"
 mkdir -p "$day"
 cd "$day"
-for f in part1.rb part2.rb; do
-  if ! [ -f $f ]; then
-    echo '#!/usr/bin/env ruby' > "$f"
-    chmod +x "$f"
-  fi
-done
+
+lng="${1:-julia}"
+case "$lng" in
+  ruby|julia)
+    init_${lng}
+    ;;
+  *)
+    echo >&2 "Unknown language [${lng}]"
+    exit 64
+esac
 
 aoc d -I
