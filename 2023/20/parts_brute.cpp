@@ -111,7 +111,7 @@ uint64_t solve_part2(const Mods &mods, uint8_t rx) {
           }
         } else {
           for (const uint8_t dest : mods.all[signal.src]) {
-            if (dest == rx) return true;
+            if (dest == rx) return i;
             send_lo(mods, signal.src, dest, state);
           }
         }
