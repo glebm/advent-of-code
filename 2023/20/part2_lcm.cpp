@@ -170,29 +170,32 @@ uint64_t solve_part2(const Mods &mods, const std::vector<uint8_t> &sinks,
             send_lo(mods, signal.src, dest, state);
           }
         }
+
+        if (std::find(sinks.begin(), sinks.end(), signal.src) != sinks.end()) {
+          bool all = true;
+          for (size_t sink_i = 0; sink_i < sinks.size(); ++sink_i) {
+            if (cycle_lengths[sink_i] != 0) continue;
+            const uint8_t sink = sinks[sink_i];
+            if (state.conj[sink - mods.flips_end] !=
+                mods.conj_masks[sink - mods.flips_end]) {
+              cycle_lengths[sink_i] = i;
+            } else {
+              all = false;
+            }
+          }
+          if (all) {
+            print_sink_cycles(std::cout) << std::endl;
+            uint64_t result = 1;
+            for (const uint64_t x : cycle_lengths) result = std::lcm(result, x);
+            return result;
+          }
+        }
       }
     }
     if (i <= 16384) {
       char path[20];
       sprintf(path, "viz/%06d.dot", static_cast<uint32_t>(i));
       save_graphviz_dot(mods, state, sinks, sink_parents, rx, path);
-    }
-    bool all = true;
-    for (size_t sink_i = 0; sink_i < sinks.size(); ++sink_i) {
-      if (cycle_lengths[sink_i] != 0) continue;
-      const uint8_t sink = sinks[sink_i];
-      if (state.conj[sink - mods.flips_end] !=
-          mods.conj_masks[sink - mods.flips_end]) {
-        cycle_lengths[sink_i] = i;
-      } else {
-        all = false;
-      }
-    }
-    if (all) {
-      print_sink_cycles(std::cout) << std::endl;
-      uint64_t result = 1;
-      for (const uint64_t x : cycle_lengths) result = std::lcm(result, x);
-      return result;
     }
     if ((i % 1000000) == 0) {
       std::cout << "Pressed the button " << (i / 1000000) << " million times;";
