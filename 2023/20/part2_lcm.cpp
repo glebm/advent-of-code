@@ -73,8 +73,68 @@ void send_lo(const Mods &mods, uint8_t from, uint8_t to, State &state) {
   }
 }
 
+void save_graphviz_dot(const Mods &mods, const State &state,
+                       const std::vector<uint8_t> &sinks,
+                       const std::vector<uint8_t> &sink_parents, uint8_t target,
+                       const std::string &path) {
+  constexpr std::string_view kNodeOn =
+      " style=\"filled\" fillcolor=\"#b71c1c\"";
+  constexpr std::string_view kEdgeHigh = " [color=\"#ef5350\"]";
+  std::ofstream out;
+  out.open(path);
+  const auto name = [&](uint8_t i) {
+    return std::string_view(mods.names[i].data() + 1, mods.names[i].size() - 1);
+  };
+  const auto rank = [&](std::string_view rank, std::vector<uint8_t> nodes) {
+    out << "  {\n" << "    rank=\"" << rank << "\"\n";
+    for (const uint8_t node : nodes) out << "    " << name(node) << "\n";
+    out << "  }\n";
+  };
+
+  out << "digraph g {\n";
+  for (uint8_t i = 0; i < mods.flips_end; ++i) {
+    const bool on = state.flip[i];
+    out << "  " << name(i) << " [shape=circle" << (on ? kNodeOn : "") << "]\n";
+    out << "  " << name(i) << " -> {";
+    for (const uint8_t dest : mods.all[i]) out << " " << name(dest);
+    out << " }";
+    if (on) out << kEdgeHigh;
+    out << "\n";
+  }
+  for (uint8_t i = mods.flips_end, j = 0; i < mods.all.size(); ++i, ++j) {
+    const bool on = mods.conj_masks[j] == state.conj[j];
+    out << "  " << name(i) << " [shape=box3d" << (on ? kNodeOn : "") << "]\n";
+    out << "  " << name(i) << " -> {";
+    for (const uint8_t dest : mods.all[i]) out << " " << name(dest);
+    out << " }";
+    if (!on) out << kEdgeHigh;
+    out << "\n";
+  }
+
+  // broadcaster and its destinations
+  rank("min", {static_cast<uint8_t>(mods.all.size() - 1)});
+  rank("same", mods.all.back());
+
+  rank("sink", sink_parents);
+  rank("sink", sinks);
+  rank("max", {target});
+
+  out << "}\n";
+}
+
 uint64_t solve_part2(const Mods &mods, const std::vector<uint8_t> &sinks,
                      uint8_t rx) {
+  // For visualization.
+  std::vector<uint8_t> sink_parents;
+  for (uint8_t i = mods.flips_end; i < mods.all.size(); ++i) {
+    for (const uint8_t sink : sinks) {
+      if (std::find(mods.all[i].begin(), mods.all[i].end(), sink) !=
+          mods.all[i].end()) {
+        sink_parents.push_back(i);
+      }
+    }
+  }
+
   State state{mods};
   std::vector<uint64_t> cycle_lengths(sinks.size(), 0);
   const auto print_sink_cycles = [&](std::ostream &os) -> std::ostream & {
@@ -111,6 +171,11 @@ uint64_t solve_part2(const Mods &mods, const std::vector<uint8_t> &sinks,
           }
         }
       }
+    }
+    if (i <= 16384) {
+      char path[20];
+      sprintf(path, "viz/%06d.dot", static_cast<uint32_t>(i));
+      save_graphviz_dot(mods, state, sinks, sink_parents, rx, path);
     }
     bool all = true;
     for (size_t sink_i = 0; sink_i < sinks.size(); ++sink_i) {
