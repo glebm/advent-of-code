@@ -1,5 +1,16 @@
 #!/bin/sh
 
+init_python() {
+  cat >solve.py <<EOL
+#!/usr/bin/env python
+import fileinput
+import numpy as np
+
+a = np.loadtxt(fileinput.input(), np.int32).T
+EOL
+  chmod +x solve.py
+}
+
 init_ruby() {
   for f in part1.rb part2.rb; do
     if ! [ -f $f ]; then
@@ -23,9 +34,9 @@ mkdir -p "$day"
 cd "$day"
 touch example
 
-lng="${1:-julia}"
+lng="${1:-python}"
 case "$lng" in
-  ruby|julia)
+  python|ruby|julia)
     init_${lng}
     ;;
   *)
